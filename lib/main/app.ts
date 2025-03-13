@@ -1,6 +1,6 @@
-import { BrowserWindow, shell, app } from 'electron'
+import { BrowserWindow, shell, app, ipcMain } from 'electron'
 import { join } from 'path'
-import { registerWindowIPC } from '@/lib/window/ipcEvents'
+import { analyzeSentiment } from './LLMSentiment';
 import appIcon from '@/resources/build/icon.png?asset'
 
 export function createAppWindow(): void {
@@ -21,8 +21,6 @@ export function createAppWindow(): void {
     },
   })
 
-  // Register IPC events for the main window.
-  registerWindowIPC(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -40,4 +38,24 @@ export function createAppWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  ipcMain.handle('open-file-dialog', async () => {
+    const { dialog } = require('electron');
+    return dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Text', extensions: ['txt'] }]
+    }).then(r => r.filePaths[0]);
+  });
+
+  ipcMain.handle('open-folder-dialog', async () => {
+    const { dialog } = require('electron');
+    return dialog.showOpenDialog({
+      properties: ['openDirectory']
+    }).then(r => r.filePaths[0]);
+  });
+
+  ipcMain.handle('analyze-sentiment', async (_, text) => {
+    return await analyzeSentiment(text);
+  });
+
 }
