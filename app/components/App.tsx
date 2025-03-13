@@ -57,7 +57,8 @@ function App() {
   const wordData = results.flatMap(r => 
     r.emotions.flatMap(e => 
       e.keywords.map(k => ({ text: k.word, value: k.count }))
-  );
+    )  // 添加闭合的括号
+  );   // 正确闭合外部的flatMap
 
   return (
     <div className="p-4">

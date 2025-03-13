@@ -2,8 +2,7 @@ import OpenAI from 'openai';
 
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 async function analyzeSentiment(text) {
@@ -55,7 +54,7 @@ async function analyzeSentiment(text) {
 
 
 // 类型守卫函数
-function isValidSentiment(data: any): data is SentimentResult {
+function isValidSentiment(data: any) {
   return (
     typeof data.overall_sentiment === 'string' &&
     Array.isArray(data.emotions) &&
@@ -63,6 +62,7 @@ function isValidSentiment(data: any): data is SentimentResult {
       typeof e.type === 'string' &&
       typeof e.intensity === 'number' &&
       Array.isArray(e.keywords)
+    )
   );
 }
 
