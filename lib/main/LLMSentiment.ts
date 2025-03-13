@@ -1,3 +1,10 @@
+import OpenAI from 'openai';
+
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL
+});
 
 async function analyzeSentiment(text) {
   const prompt = `
@@ -25,14 +32,39 @@ async function analyzeSentiment(text) {
     }
   `;
 
-  // 调用大语言模型API（这里假设使用xAI的API）
-  const response = await fetch('https://api.xai.com/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-  const result = await response.json();
-  return JSON.parse(result.output); // 假设返回的是JSON字符串
+  try {
+    const response = await openai.chat.completions.create({
+      model: process.env.LLM_MODEL as string,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
+    
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    // 添加类型校验
+    if (!isValidSentiment(result)) {
+      throw new Error('Invalid sentiment analysis result');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('情感分析失败:', error);
+    throw error;
+  }
 }
+
+
+// 类型守卫函数
+function isValidSentiment(data: any): data is SentimentResult {
+  return (
+    typeof data.overall_sentiment === 'string' &&
+    Array.isArray(data.emotions) &&
+    data.emotions.every((e: any) => 
+      typeof e.type === 'string' &&
+      typeof e.intensity === 'number' &&
+      Array.isArray(e.keywords)
+  );
+}
+
 
 export { analyzeSentiment };
