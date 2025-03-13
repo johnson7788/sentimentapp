@@ -31,7 +31,7 @@ function App() {
     try {
       const analysis = await Promise.all(
         textContent.map(text => 
-          ipcRenderer.invoke('analyze-sentiment', text)
+          window.api.invoke('analyze-sentiment', text)
         )
       );
       setResults(analysis);
@@ -118,3 +118,5 @@ function App() {
     </div>
   );
 }
+
+export default App;

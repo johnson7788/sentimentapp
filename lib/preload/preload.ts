@@ -3,6 +3,10 @@ import fs from 'fs/promises';
 import path from 'path';
 
 
+contextBridge.exposeInMainWorld('api', {
+  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+});
+
 contextBridge.exposeInMainWorld('fileApi', {
   openFileDialog: async () => ipcRenderer.invoke('open-file-dialog'),
   openFolderDialog: async () => ipcRenderer.invoke('open-folder-dialog'),
@@ -11,7 +15,7 @@ contextBridge.exposeInMainWorld('fileApi', {
     const files = await fs.readdir(folderPath);
     return Promise.all(
       files.filter(f => f.endsWith('.txt'))
-        .map(f => fs.readFile(path.join(folderPath, f), 'utf-8')
+        .map(f => fs.readFile(path.join(folderPath, f), 'utf-8'))
     );
   }
 });
