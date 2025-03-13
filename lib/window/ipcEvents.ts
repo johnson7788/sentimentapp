@@ -1,5 +1,4 @@
 import { type BrowserWindow, ipcMain, shell } from 'electron'
-import { dialog } from 'electron';
 import os from 'os'
 
 const handleIPC = (channel: string, handler: (...args: any[]) => void) => {
@@ -9,22 +8,6 @@ const handleIPC = (channel: string, handler: (...args: any[]) => void) => {
 export const registerWindowIPC = (mainWindow: BrowserWindow) => {
   // Hide the menu bar
   mainWindow.setMenuBarVisibility(false)
-
-
-  handleIPC('open-file-dialog', async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: [{ name: 'Text Files', extensions: ['txt'] }]
-    });
-    return result.filePaths[0];
-  });
-
-  handleIPC('open-folder-dialog', async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory']
-    });
-    return result.filePaths[0];
-  });
 
   // Register window IPC
   handleIPC('init-window', () => {

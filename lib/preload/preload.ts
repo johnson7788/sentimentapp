@@ -1,21 +1,20 @@
-import { contextBridge, ipcRenderer } from 'electron';
-import fs from 'fs/promises';
-import path from 'path';
+import { contextBridge } from 'electron'
+import { electronAPI } from '@electron-toolkit/preload'
+import api from './api'
 
-
-contextBridge.exposeInMainWorld('api', {
-  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
-});
-
-contextBridge.exposeInMainWorld('fileApi', {
-  openFileDialog: async () => ipcRenderer.invoke('open-file-dialog'),
-  openFolderDialog: async () => ipcRenderer.invoke('open-folder-dialog'),
-  readFile: (filePath: string) => fs.readFile(filePath, 'utf-8'),
-  readFolder: async (folderPath: string) => {
-    const files = await fs.readdir(folderPath);
-    return Promise.all(
-      files.filter(f => f.endsWith('.txt'))
-        .map(f => fs.readFile(path.join(folderPath, f), 'utf-8'))
-    );
+// Use `contextBridge` APIs to expose Electron APIs to
+// renderer only if context isolation is enabled, otherwise
+// just add to the DOM global.
+if (process.contextIsolated) {
+  try {
+    contextBridge.exposeInMainWorld('electron', electronAPI)
+    contextBridge.exposeInMainWorld('api', api)
+  } catch (error) {
+    console.error(error)
   }
-});
+} else {
+  // @ts-ignore (define in dts)
+  window.electron = electronAPI
+  // @ts-ignore (define in dts)
+  window.api = api
+}
